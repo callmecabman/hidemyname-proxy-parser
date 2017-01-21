@@ -1,29 +1,35 @@
+{-# LANGUAGE RecordWildCards #-}
+
 module Main where
 
 import Proxy
+import Data.Maybe
 import Data.List.Split(splitWhen)
 import Control.Lens
-import Network.Wreq
+import Network.Wreq(getWith,defaults,param,responseBody)
+import qualified Data.Text as T
 import Text.StringLike
 import Text.HTML.TagSoup
 import Text.ParserCombinators.Parsec
 
-junkTagsRemoved :: [Tag String] -> [Tag String]
-junkTagsRemoved = (takeWhile (~/= "</tbody>")) . tail . (dropWhile (~/= "<tbody>"))
+isolateTable :: [Tag String] -> [Tag String]
+isolateTable = (takeWhile (~/= "</tbody>")) . tail . (dropWhile (~/= "<tbody>"))
 
-onlyProxyTagsList :: [Tag String] -> [[Tag String]]
-onlyProxyTagsList = filter (not . null). fmap (dropWhile (~== "<tr")) . splitWhen (~== "</tr>")
+processTable :: [Tag String] -> [[String]]
+processTable = fmap (fmap fromTagText . (filter isTagText)) . filter (not . null) . splitWhen (~== "</tr>")
+
+parseProxyPage :: Integer -> IO [Proxy]
+parseProxyPage s = do
+  let opts = defaults & param (T.pack "start") .~ [T.pack $ show s]
+  res <- getWith opts $ "http://hidemy.name/en/proxy-list/"
+  let rawTags = parseTags (castString (res ^. responseBody) :: String)
+  let cookedTags = processTable $ isolateTable rawTags
+  return $ mapMaybe readProxy cookedTags
 
 main :: IO ()
 main = do
-  res <-get "http://hidemy.name/ru/proxy-list/"
-  let rawTags = parseTags (castString (res ^. responseBody) :: String)
-  let cookedTagList = onlyProxyTagsList $ junkTagsRemoved rawTags
---  print $ fmap (parse parseIP "whatever") cookedTagList
-  return ()
+  firstPage <- parseProxyPage 0
+  sequence_ $ fmap (putStrLn . prettyProxy) firstPage
 
-parseIP (_:t:ts) = (fmap readIP $ maybeTagText t, ts)
-parseIP ts = (Nothing, ts)
-
-parsePort (_:t:ts) = (fmap readPort $ maybeTagText t, ts)
-parsePort ts = (Nothing, ts)
+prettyProxy :: Proxy -> String
+prettyProxy Proxy{..} = foldr (++) "" [show pIP, ":", show pPort, " ", show pType]

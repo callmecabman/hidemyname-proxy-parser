@@ -1,5 +1,5 @@
 name:                hidemyname-proxy-parser
-version:             0.1.1.0
+version:             0.1.3.0
 synopsis:            Get all the proxies from hidemy.name for free
 description:         Please see README.md
 homepage:            https://github.com/callmecabman/hidemyname-proxy-parser#readme
@@ -17,7 +17,6 @@ library
   hs-source-dirs:      src
   exposed-modules:     Proxy
   build-depends:       base >= 4.7 && < 5
-                     , bytestring
                      , parsec
   default-language:    Haskell2010
 
@@ -28,11 +27,11 @@ executable hidemyname-proxy-parser-exe
   build-depends:       base
                      , hidemyname-proxy-parser
                      , split
+                     , text
                      , lens
                      , wreq
                      , parsec
                      , tagsoup
-                     , parsec-tagsoup
   default-language:    Haskell2010
 
 test-suite hidemyname-proxy-parser-test
