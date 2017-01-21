@@ -103,3 +103,4 @@ readProxy (ip:port:loc:_:lat:ptype:anon:_) = do
           , pType = ptype'
           , pAnon = anon'
           }
+readProxy _ = Nothing

@@ -6,11 +6,13 @@ import Proxy
 import Data.Maybe
 import Data.List.Split(splitWhen)
 import Control.Lens
+import Control.Concurrent
+import Control.Concurrent.STM
+import System.Random
 import Network.Wreq(getWith,defaults,param,responseBody)
 import qualified Data.Text as T
 import Text.StringLike
 import Text.HTML.TagSoup
-import Text.ParserCombinators.Parsec
 
 isolateTable :: [Tag String] -> [Tag String]
 isolateTable = (takeWhile (~/= "</tbody>")) . tail . (dropWhile (~/= "<tbody>"))
@@ -26,10 +28,29 @@ parseProxyPage s = do
   let cookedTags = processTable $ isolateTable rawTags
   return $ mapMaybe readProxy cookedTags
 
+getterThread :: TChan Proxy -> Integer -> IO ()
+getterThread ch s = do
+  d <- randomRIO (halfSecond, oneSecond)
+  threadDelay d
+  proxies <- parseProxyPage s
+  sequence_ $ fmap (atomically . (writeTChan ch)) proxies
+
+printerThread :: TChan Proxy -> IO ()
+printerThread ch = do
+  p <- atomically $ readTChan ch
+  putStrLn $ prettyProxy p
+  printerThread ch
+
 main :: IO ()
 main = do
-  firstPage <- parseProxyPage 0
-  sequence_ $ fmap (putStrLn . prettyProxy) firstPage
+  proxyChan <- atomically newTChan
+  let threads = fmap (forkIO . (getterThread proxyChan)) [0, 64 ..]
+  sequence_ $ take 20 threads
+  forkIO $ printerThread proxyChan
+  threadDelay $ 4 * oneSecond
+
+halfSecond =  500000
+oneSecond =  1000000
 
 prettyProxy :: Proxy -> String
 prettyProxy Proxy{..} = foldr (++) "" [show pIP, ":", show pPort, " ", show pType]
