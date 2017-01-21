@@ -1,0 +1,49 @@
+name:                hidemyname-proxy-parser
+version:             0.1.1.0
+synopsis:            Get all the proxies from hidemy.name for free
+description:         Please see README.md
+homepage:            https://github.com/callmecabman/hidemyname-proxy-parser#readme
+license:             BSD3
+license-file:        LICENSE
+author:              callmecabman
+maintainer:          callmecabman@protonmail.ch
+copyright:           copywhat?
+category:            Web
+build-type:          Simple
+extra-source-files:  README.md
+cabal-version:       >=1.10
+
+library
+  hs-source-dirs:      src
+  exposed-modules:     Proxy
+  build-depends:       base >= 4.7 && < 5
+                     , bytestring
+                     , parsec
+  default-language:    Haskell2010
+
+executable hidemyname-proxy-parser-exe
+  hs-source-dirs:      app
+  main-is:             Main.hs
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  build-depends:       base
+                     , hidemyname-proxy-parser
+                     , split
+                     , lens
+                     , wreq
+                     , parsec
+                     , tagsoup
+                     , parsec-tagsoup
+  default-language:    Haskell2010
+
+test-suite hidemyname-proxy-parser-test
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:      test
+  main-is:             Spec.hs
+  build-depends:       base
+                     , hidemyname-proxy-parser
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  default-language:    Haskell2010
+
+source-repository head
+  type:     git
+  location: https://github.com/callmecabman/hidemyname-proxy-parser
