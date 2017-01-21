@@ -30,7 +30,7 @@ parseProxyPage s = do
 
 getterThread :: TChan Proxy -> Integer -> IO ()
 getterThread ch s = do
-  d <- randomRIO (halfSecond, oneSecond)
+  d <- randomRIO (halfSecond, halfSecond * 2)
   threadDelay d
   proxies <- parseProxyPage s
   sequence_ $ fmap (atomically . (writeTChan ch)) proxies
@@ -47,10 +47,9 @@ main = do
   let threads = fmap (forkIO . (getterThread proxyChan)) [0, 64 ..]
   sequence_ $ take 20 threads
   forkIO $ printerThread proxyChan
-  threadDelay $ 4 * oneSecond
+  threadDelay $ 8 * halfSecond
 
 halfSecond =  500000
-oneSecond =  1000000
 
 prettyProxy :: Proxy -> String
 prettyProxy Proxy{..} = foldr (++) "" [show pIP, ":", show pPort, " ", show pType]

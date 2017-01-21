@@ -31,14 +31,13 @@ readIP str = do
   case parse parseIPIntegers "IP" str of
     Left _ -> Nothing
     Right ws ->
-      if any (>=256) ws
+      if any (>= 256) ws
               then Nothing
               else ipFromIntegers ws
 
 readPort :: String -> Maybe Word16
 readPort str = do
-  let t = parse (many1 digit) "Port" str
-  case t of
+  case parse (many1 digit) "Port" str of
     Left _ -> Nothing
     Right w ->
       let w' = read w in
