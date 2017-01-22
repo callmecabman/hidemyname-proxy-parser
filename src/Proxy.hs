@@ -31,7 +31,7 @@ readIP str = do
   case parse parseIPIntegers "IP" str of
     Left _ -> Nothing
     Right ws ->
-      if any (>= 256) ws
+      if any (> fromIntegral (maxBound :: Word8)) ws
               then Nothing
               else ipFromIntegers ws
 
@@ -41,7 +41,7 @@ readPort str = do
     Left _ -> Nothing
     Right w ->
       let w' = read w in
-        if w' <= 1 || w' >= 65536
+        if w' < 1 || w' > (fromIntegral (maxBound :: Word16))
           then Nothing
           else return $ fromInteger w'
 
