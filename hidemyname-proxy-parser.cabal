@@ -1,5 +1,5 @@
 name:                hidemyname-proxy-parser
-version:             0.3.2.0
+version:             0.3.2.2
 synopsis:            Get all the proxies from hidemy.name for free
 description:         Please see README.md
 homepage:            https://github.com/callmecabman/hidemyname-proxy-parser#readme

@@ -2,38 +2,41 @@ module Proxy where
 
 import Data.Word
 import Data.Char
+import Data.List (intercalate)
 import Text.ParserCombinators.Parsec
+import Control.Monad (guard)
 
 data IP = IP Word8 Word8 Word8 Word8
 
 instance Show IP where
-  show (IP w x y z) = foldr (++) "" [show w, ".", show x, ".", show y, ".", show z]
+  show (IP w x y z) = intercalate "." . fmap show $ [w, x, y, z]
 
-ipFromIntegers:: [Integer] -> Maybe IP
-ipFromIntegers (w:x:y:z:[]) = Just $ IP w' x' y' z'
-  where
-    [w',x',y',z'] = fmap fromInteger [w,x,y,z]
-ipFromIntegers _ = Nothing
-
-parseIPIntegers :: Parser [Integer]
-parseIPIntegers = do
+parseIPOctet :: Parser Word8
+parseIPOctet = do
   w <- many1 digit
+  let i = read w :: Int
+  guard (i >= word8Min && i <= word8Max)
+  return $ fromIntegral i
+    where
+      word8Min = fromIntegral (minBound :: Word8)
+      word8Max = fromIntegral (maxBound :: Word8)
+
+parseIP :: Parser IP
+parseIP = do
+  w <- parseIPOctet
   char '.'
-  x <- many1 digit
+  x <- parseIPOctet
   char '.'
-  y <- many1 digit
+  y <- parseIPOctet
   char '.'
-  z <- many1 digit
-  return $ fmap read [w, x, y, z]
+  z <- parseIPOctet
+  return $ IP w x y z
 
 readIP :: String -> Maybe IP
 readIP str = do
-  case parse parseIPIntegers "IP" str of
-    Left _ -> Nothing
-    Right ws ->
-      if any (> fromIntegral (maxBound :: Word8)) ws
-              then Nothing
-              else ipFromIntegers ws
+  case parse parseIP "IP" str of
+    Left _  -> Nothing
+    Right a -> Just a
 
 readPort :: String -> Maybe Word16
 readPort str = do
