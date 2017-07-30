@@ -33,18 +33,18 @@ parseIP = do
   return $ IP w x y z
 
 readIP :: String -> Maybe IP
-readIP str = do
+readIP str =
   case parse parseIP "IP" str of
     Left _  -> Nothing
     Right a -> Just a
 
 readPort :: String -> Maybe Word16
-readPort str = do
+readPort str =
   case parse (many1 digit) "Port" str of
     Left _ -> Nothing
     Right w ->
       let w' = read w in
-        if w' < 1 || w' > (fromIntegral (maxBound :: Word16))
+        if w' < 1 || w' > fromIntegral (maxBound :: Word16)
           then Nothing
           else return $ fromInteger w'
 
@@ -57,7 +57,7 @@ data ProxyType = HTTP
                deriving Show
 
 readProxyType :: String -> Maybe ProxyType
-readProxyType str = do
+readProxyType str =
   case str of
     "HTTP"           -> return HTTP
     "HTTPS"          -> return HTTPS
@@ -65,7 +65,7 @@ readProxyType str = do
     "SOCKS4"         -> return SOCKS4
     "SOCKS5"         -> return SOCKS5
     "SOCKS4, SOCKS5" -> return SOCKSBoth
-    otherwise        -> Nothing
+    _                -> Nothing
 
 data AnonymityLevel = AnonNone
                     | AnonLow
@@ -74,13 +74,13 @@ data AnonymityLevel = AnonNone
                     deriving Show
 
 readAnonymityLevel:: String -> Maybe AnonymityLevel
-readAnonymityLevel str = do
+readAnonymityLevel str =
   case str of
     "No"      -> return AnonNone
     "Low"     -> return AnonLow
     "Medium"  -> return AnonMedium
     "High"    -> return AnonHigh
-    otherwise -> Nothing
+    _         -> Nothing
 
 data Proxy = Proxy
   { pIP :: IP

@@ -53,4 +53,4 @@ main = do
   race_ (sequence_ $ take 10 threads) (printerThread proxyChan)
 
 prettyProxy :: Proxy -> String
-prettyProxy Proxy{..} = foldr (++) "" [show pIP, ":", show pPort, " ", show pType]
+prettyProxy Proxy{..} = mconcat [show pIP, ":", show pPort, " ", show pType]
